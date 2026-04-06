@@ -1,6 +1,54 @@
-﻿import { Link } from "react-router-dom";
+﻿import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import API_URL from "../api";
 
 function Login() {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
+
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "No se pudo iniciar sesión");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      navigate("/panel-paciente");
+    } catch (err) {
+      setError("Error de conexión con el servidor");
+    }
+  };
+
   return (
     <main className="auth-page">
       <section className="auth-wrapper">
@@ -11,13 +59,16 @@ function Login() {
             Ingresa a tu cuenta para revisar tu información y gestionar tus reservas.
           </p>
 
-          <form className="auth-form">
+          <form className="auth-form" onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="email">Correo electrónico</label>
               <input
                 type="email"
                 id="email"
                 placeholder="ejemplo@correo.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
               />
             </div>
 
@@ -27,8 +78,13 @@ function Login() {
                 type="password"
                 id="password"
                 placeholder="Ingresa tu contraseña"
+                value={formData.password}
+                onChange={handleChange}
+                required
               />
             </div>
+
+            {error && <p>{error}</p>}
 
             <button type="submit" className="btn-primary auth-button">
               Iniciar sesión
