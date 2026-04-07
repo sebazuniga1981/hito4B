@@ -100,18 +100,25 @@ function Planes() {
         </div>
 
         <div className="cards-grid">
-          {planesOnline.map((plan) => (
-            <article className="card plan-card" key={plan.titulo}>
-              <span className="plan-tag online">Online</span>
-              <h4>{plan.titulo}</h4>
-              <p className="plan-detail">{plan.detalle}</p>
-              <p>{plan.descripcion}</p>
-              <strong className="plan-price">{plan.precio}</strong>
-              <Link to="/contacto" className="btn-primary">
-                Consultar plan
-              </Link>
-            </article>
-          ))}
+        {planesOnline.map((plan) => (
+  <article className="card plan-card" key={plan.titulo}>
+    <span className="plan-tag online">Online</span>
+    <h4>{plan.titulo}</h4>
+    <p className="plan-detail">{plan.detalle}</p>
+    <p>{plan.descripcion}</p>
+    <strong className="plan-price">{plan.precio}</strong>
+
+    {plan.titulo === "Plan Familiar Online" ? (
+      <Link to="/contacto" className="btn-primary">
+        Consultar plan
+      </Link>
+    ) : (
+      <Link to="/reservar" className="btn-primary">
+        Reservar plan
+      </Link>
+    )}
+  </article>
+))}
         </div>
       </section>
 
