@@ -37,6 +37,9 @@ function Navbar() {
           <Link to="/modalidades" onClick={closeMenu}>
             Modalidades
           </Link>
+          <Link to="/planes" onClick={closeMenu}>
+            Planes
+          </Link>
           <Link to="/contacto" onClick={closeMenu}>
             Contacto
           </Link>

@@ -12,6 +12,7 @@ import PanelPsicologa from "./pages/PanelPsicologa";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ConfirmacionReserva from "./pages/ConfirmacionReserva";
+import Planes from "./pages/Planes";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/reservar" element={<ReservarHora />} />
         <Route path="/panel-paciente" element={<PanelPaciente />} />
         <Route path="/confirmacion-reserva" element={<ConfirmacionReserva />} />
+        <Route path="/planes" element={<Planes />} />
         <Route path="/panel-psicologa" element={<PanelPsicologa />} />
       </Routes>
       <Footer />
