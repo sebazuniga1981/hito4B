@@ -84,7 +84,7 @@ function ReservarHora() {
       <section className="section section-soft">
         <div className="section-intro">
           <h3>Formulario de reserva</h3>
-          <p>Esta vista ahora envia la reserva al backend configurado en `VITE_API_URL`.</p>
+          <p>Completa tus datos para confirmar tu reserva.</p>
         </div>
 
         <div className="booking-card">
@@ -143,8 +143,7 @@ function ReservarHora() {
         <div className="section-intro center">
           <h3>Informacion importante</h3>
           <p>
-            Si la API falla, revisa que `VITE_API_URL` apunte al backend desplegado y que ese backend
-            use la URL de PostgreSQL de Render en su entorno.
+            Te enviaremos la confirmacion de tu reserva despues de guardar la solicitud.
           </p>
         </div>
       </section>
