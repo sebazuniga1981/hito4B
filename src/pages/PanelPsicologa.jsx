@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import API_URL from "../api";
+import { HORAS_AGENDA } from "../constants/agenda";
 
-const HOURS = Array.from({ length: 14 }, (_, i) => `${String(i + 8).padStart(2, "0")}:00`);
+const HOURS = HORAS_AGENDA;
 const DAY_LABELS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
 
 function addDays(date, days) {
@@ -144,6 +145,12 @@ function PanelPsicologa() {
   const [actionLoadingKey, setActionLoadingKey] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [moviendoReservaId, setMoviendoReservaId] = useState(null);
+  const [moveForm, setMoveForm] = useState({
+    fecha: "",
+    hora: "",
+    modalidad: "Online"
+  });
 
   const [planes, setPlanes] = useState([]);
   const [planesLoading, setPlanesLoading] = useState(false);
@@ -338,26 +345,43 @@ function PanelPsicologa() {
     }
   };
 
-  const moverReserva = async (reservaId) => {
+  const abrirEditorMovimiento = (reserva) => {
+    setMoviendoReservaId(reserva.id);
+    setMoveForm({
+      fecha: reserva.fecha || "",
+      hora: reserva.hora || "",
+      modalidad: reserva.modalidad || "Online"
+    });
+    setError("");
+  };
+
+  const cambiarMoveForm = (e) => {
+    setMoveForm((prev) => ({
+      ...prev,
+      [e.target.id]: e.target.value
+    }));
+  };
+
+  const guardarMovimiento = async (reservaId) => {
     const current = reservas.find((r) => r.id === reservaId);
     if (!current) return;
 
-    let destino = null;
-    for (const day of weekDays) {
-      for (const hour of HOURS) {
-        const key = slotKey(day.dateKey, hour);
-        const ocupado = reservasBySlot.has(key) || bloqueosBySlot.has(key);
-        const isCurrent = current.fecha === day.dateKey && current.hora === hour;
-        if (!ocupado && !isCurrent) {
-          destino = { fecha: day.dateKey, hora: hour };
-          break;
-        }
-      }
-      if (destino) break;
+    const fecha = moveForm.fecha;
+    const hora = moveForm.hora;
+    const modalidad = moveForm.modalidad;
+
+    if (!fecha || !hora || !modalidad) {
+      setError("Debes seleccionar fecha, hora y modalidad para mover la reserva");
+      return;
     }
 
-    if (!destino) {
-      setError("No hay cupos disponibles para mover la reserva en esta semana");
+    const destinoKey = slotKey(fecha, hora);
+    const reservaEnDestino = reservasBySlot.get(destinoKey);
+    const bloqueoEnDestino = bloqueosBySlot.get(destinoKey);
+    const esMismaReserva = reservaEnDestino?.id === reservaId;
+
+    if (!esMismaReserva && (reservaEnDestino || bloqueoEnDestino)) {
+      setError("El horario seleccionado no esta disponible");
       return;
     }
 
@@ -366,11 +390,25 @@ function PanelPsicologa() {
     setError("");
 
     try {
-      await sendAdminAction(`/api/admin/reservas/${reservaId}/mover`, "PATCH", destino);
+      await sendAdminAction(`/api/admin/reservas/${reservaId}/mover`, "PATCH", {
+        fecha,
+        hora,
+        modalidad
+      });
       setReservas((prev) =>
-        prev.map((r) => (r.id === reservaId ? { ...r, fecha: destino.fecha, hora: destino.hora } : r))
+        prev.map((r) =>
+          r.id === reservaId
+            ? {
+                ...r,
+                fecha,
+                hora,
+                modalidad
+              }
+            : r
+        )
       );
-      setMessage(`Reserva ${reservaId} movida a ${destino.fecha} ${destino.hora}`);
+      setMessage(`Reserva ${reservaId} actualizada a ${fecha} ${hora} (${modalidad})`);
+      setMoviendoReservaId(null);
     } catch (err) {
       setError(err.message || "No se pudo mover la reserva");
     } finally {
@@ -692,11 +730,46 @@ function PanelPsicologa() {
                                 type="button"
                                 className="mini-btn"
                                 disabled={actionLoadingKey === `mover_${reserva.id}`}
-                                onClick={() => moverReserva(reserva.id)}
+                                onClick={() => abrirEditorMovimiento(reserva)}
                               >
                                 Mover
                               </button>
                             </div>
+                            {moviendoReservaId === reserva.id && (
+                              <div className="move-editor">
+                                <div className="move-grid">
+                                  <label htmlFor="fecha">Fecha</label>
+                                  <input id="fecha" type="date" value={moveForm.fecha} onChange={cambiarMoveForm} />
+                                  <label htmlFor="hora">Hora</label>
+                                  <select id="hora" value={moveForm.hora} onChange={cambiarMoveForm}>
+                                    <option value="">Selecciona</option>
+                                    {HOURS.map((hourOption) => (
+                                      <option key={hourOption} value={hourOption}>
+                                        {hourOption}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <label htmlFor="modalidad">Modalidad</label>
+                                  <select id="modalidad" value={moveForm.modalidad} onChange={cambiarMoveForm}>
+                                    <option value="Online">Online</option>
+                                    <option value="Presencial">Presencial</option>
+                                  </select>
+                                </div>
+                                <div className="move-actions">
+                                  <button
+                                    type="button"
+                                    className="mini-btn"
+                                    disabled={actionLoadingKey === `mover_${reserva.id}`}
+                                    onClick={() => guardarMovimiento(reserva.id)}
+                                  >
+                                    {actionLoadingKey === `mover_${reserva.id}` ? "Guardando..." : "Guardar cambio"}
+                                  </button>
+                                  <button type="button" className="mini-btn" onClick={() => setMoviendoReservaId(null)}>
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </td>

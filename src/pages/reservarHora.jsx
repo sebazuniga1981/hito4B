@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API_URL from "../api";
+import { HORAS_AGENDA } from "../constants/agenda";
+
+const HOURS = HORAS_AGENDA;
 
 function ReservarHora() {
   const navigate = useNavigate();
@@ -17,6 +20,8 @@ function ReservarHora() {
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingDisponibilidad, setLoadingDisponibilidad] = useState(false);
+  const [horasNoDisponibles, setHorasNoDisponibles] = useState([]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -41,6 +46,11 @@ function ReservarHora() {
 
     if (!nombre || !apellido || !email) {
       setError("Nombre, apellido y correo son obligatorios.");
+      return;
+    }
+
+    if (horasNoDisponibles.includes(formData.hora)) {
+      setError("La hora seleccionada ya no esta disponible. Elige otra.");
       return;
     }
 
@@ -86,6 +96,50 @@ function ReservarHora() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchDisponibilidad = async () => {
+      if (!formData.fecha || !API_URL) {
+        if (isMounted) setHorasNoDisponibles([]);
+        return;
+      }
+
+      setLoadingDisponibilidad(true);
+
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          `${API_URL}/api/reservas/disponibilidad?fecha=${encodeURIComponent(formData.fecha)}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
+          }
+        );
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No se pudo cargar disponibilidad");
+
+        if (!isMounted) return;
+        const ocupadas = Array.isArray(data?.horasNoDisponibles) ? data.horasNoDisponibles : [];
+        setHorasNoDisponibles(ocupadas);
+        setFormData((prev) => (ocupadas.includes(prev.hora) ? { ...prev, hora: "" } : prev));
+      } catch {
+        if (!isMounted) return;
+        setHorasNoDisponibles([]);
+      } finally {
+        if (isMounted) setLoadingDisponibilidad(false);
+      }
+    };
+
+    fetchDisponibilidad();
+    return () => {
+      isMounted = false;
+    };
+  }, [formData.fecha]);
 
   return (
     <main className="reservar-page">
@@ -151,14 +205,19 @@ function ReservarHora() {
               <label htmlFor="hora">Hora</label>
               <select id="hora" value={formData.hora} onChange={handleChange} required>
                 <option value="">Selecciona una hora</option>
-                <option value="09:00">09:00</option>
-                <option value="10:00">10:00</option>
-                <option value="11:00">11:00</option>
-                <option value="12:00">12:00</option>
-                <option value="15:00">15:00</option>
-                <option value="16:00">16:00</option>
-                <option value="17:00">17:00</option>
+                {HOURS.map((hora) => (
+                  <option key={hora} value={hora} disabled={horasNoDisponibles.includes(hora)}>
+                    {hora} {horasNoDisponibles.includes(hora) ? "(No disponible)" : ""}
+                  </option>
+                ))}
               </select>
+              {formData.fecha && (
+                <small>
+                  {loadingDisponibilidad
+                    ? "Actualizando disponibilidad..."
+                    : "Se bloquean horarios pendientes, confirmados y bloqueados por administracion."}
+                </small>
+              )}
             </div>
 
             <div className="form-group">

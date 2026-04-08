@@ -876,6 +876,39 @@ a {
   flex-wrap: wrap;
 }
 
+.move-editor {
+  margin-top: 8px;
+  border-top: 1px solid var(--borde);
+  padding-top: 8px;
+}
+
+.move-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.move-grid label {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.move-grid input,
+.move-grid select {
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+}
+
+.move-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
 .mini-btn {
   border: 1px solid var(--borde);
   background-color: #fff;
