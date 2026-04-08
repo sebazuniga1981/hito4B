@@ -42,6 +42,16 @@ function getEstadoClass(estado) {
   return "status-cancelada";
 }
 
+async function safeReadJson(response) {
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) return null;
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 function PanelPaciente() {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,10 +90,13 @@ function PanelPaciente() {
         }
       });
 
-      const data = await response.json();
+      const data = await safeReadJson(response);
 
       if (!response.ok) {
-        throw new Error(data?.error || "No se pudieron cargar tus reservas");
+        throw new Error(
+          data?.error ||
+            "El endpoint /api/reservas/mias no esta disponible o no responde JSON en el backend."
+        );
       }
 
       setReservas(normalizeReservas(data));
@@ -116,7 +129,7 @@ function PanelPaciente() {
         }
       });
 
-      const data = await response.json();
+      const data = await safeReadJson(response);
       if (!response.ok) {
         throw new Error(data?.error || "No se pudo cancelar la reserva");
       }
@@ -162,7 +175,7 @@ function PanelPaciente() {
         body: JSON.stringify(nuevoHorario)
       });
 
-      const data = await response.json();
+      const data = await safeReadJson(response);
       if (!response.ok) {
         throw new Error(data?.error || "No se pudo reprogramar la reserva");
       }
