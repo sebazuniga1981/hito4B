@@ -6,13 +6,14 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const isAuthenticated = Boolean(localStorage.getItem("token"));
-  const role = localStorage.getItem("role");
+  const role = localStorage.getItem("role") || localStorage.getItem("rol");
 
   const closeMenu = () => setIsOpen(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("rol");
     closeMenu();
     navigate("/login");
   };

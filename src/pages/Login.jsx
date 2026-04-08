@@ -51,13 +51,16 @@ function Login() {
       }
 
       localStorage.setItem("token", data.token);
-      if (data.role) {
-        localStorage.setItem("role", data.role);
+      const userRole = data.role || data.rol || "";
+      if (userRole) {
+        localStorage.setItem("role", userRole);
+        localStorage.setItem("rol", userRole);
       } else {
         localStorage.removeItem("role");
+        localStorage.removeItem("rol");
       }
 
-      navigate(data.role === "admin" ? "/panel-psicologa" : "/panel-paciente");
+      navigate(userRole === "admin" ? "/panel-psicologa" : "/panel-paciente");
     } catch {
       setError("Error de conexion con el servidor");
     } finally {

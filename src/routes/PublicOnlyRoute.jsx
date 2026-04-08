@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 
 function PublicOnlyRoute() {
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const role = localStorage.getItem("role") || localStorage.getItem("rol");
 
   if (token) {
     return <Navigate to={role === "admin" ? "/panel-psicologa" : "/panel-paciente"} replace />;
