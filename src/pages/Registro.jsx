@@ -28,6 +28,11 @@ function Registro() {
     setMensaje("");
     setError("");
 
+    if (!API_URL) {
+      setError("Falta configurar VITE_API_URL en frontend (Render).");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;

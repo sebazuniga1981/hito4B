@@ -13,6 +13,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ConfirmacionReserva from "./pages/ConfirmacionReserva";
 import Planes from "./pages/Planes";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicOnlyRoute from "./routes/PublicOnlyRoute";
 
 function App() {
   return (
@@ -24,13 +26,22 @@ function App() {
         <Route path="/especializaciones" element={<Especializaciones />} />
         <Route path="/modalidades" element={<Modalidades />} />
         <Route path="/contacto" element={<Contacto />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/registro" element={<Registro />} />
-        <Route path="/reservar" element={<ReservarHora />} />
-        <Route path="/panel-paciente" element={<PanelPaciente />} />
-        <Route path="/confirmacion-reserva" element={<ConfirmacionReserva />} />
         <Route path="/planes" element={<Planes />} />
-        <Route path="/panel-psicologa" element={<PanelPsicologa />} />
+
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/reservar" element={<ReservarHora />} />
+          <Route path="/panel-paciente" element={<PanelPaciente />} />
+          <Route path="/confirmacion-reserva" element={<ConfirmacionReserva />} />
+        </Route>
+
+        <Route element={<ProtectedRoute requiredRole="admin" />}>
+          <Route path="/panel-psicologa" element={<PanelPsicologa />} />
+        </Route>
       </Routes>
       <Footer />
     </>

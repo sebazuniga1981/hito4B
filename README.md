@@ -1,16 +1,31 @@
-# React + Vite
+# PsicoConecta Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend en React + Vite para autenticacion y reservas.
 
-Currently, two official plugins are available:
+## Variables de entorno
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Usa `.env.example` como referencia:
 
-## React Compiler
+```bash
+VITE_API_URL=http://localhost:3000
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- En desarrollo puedes usar `http://localhost:3000`.
+- En produccion (Render) debes configurar `VITE_API_URL` con la URL publica de tu backend, por ejemplo: `https://tu-backend.onrender.com`.
+- El frontend ya no usa `localhost` como fallback en produccion.
 
-## Expanding the ESLint configuration
+## Scripts
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+npm run build
+```
+
+## Endpoints esperados por el frontend
+
+- `POST /api/register`
+- `POST /api/login`
+- `POST /api/reservas`
+
+Si las reservas no quedan en PostgreSQL, el problema esta en el backend desplegado (variables de entorno y conexion a DB), no en este frontend.

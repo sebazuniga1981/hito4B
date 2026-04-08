@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
 
@@ -23,6 +23,11 @@ function Login() {
     e.preventDefault();
     setError("");
 
+    if (!API_URL) {
+      setError("Falta configurar VITE_API_URL en frontend (Render).");
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/login`, {
         method: "POST",
@@ -43,7 +48,13 @@ function Login() {
       }
 
       localStorage.setItem("token", data.token);
-      navigate("/panel-paciente");
+      if (data.role) {
+        localStorage.setItem("role", data.role);
+      } else {
+        localStorage.removeItem("role");
+      }
+
+      navigate(data.role === "admin" ? "/panel-psicologa" : "/panel-paciente");
     } catch (err) {
       setError("Error de conexión con el servidor");
     }

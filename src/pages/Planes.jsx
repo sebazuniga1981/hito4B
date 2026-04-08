@@ -1,26 +1,25 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 const planesPresenciales = [
   {
     titulo: "Plan Individual 4 sesiones",
     detalle: "4 sesiones mensuales individuales",
     descripcion:
-      "Atención presencial, ideal para un acompañamiento constante y cercano.",
+      "AtenciÃ³n presencial, ideal para un acompaÃ±amiento constante y cercano.",
     precio: "$45.000 CLP"
   },
   {
     titulo: "Plan Individual 8 sesiones",
     detalle: "8 sesiones mensuales individuales",
     descripcion:
-      "Pensado para quienes necesitan un seguimiento más frecuente durante el mes.",
-    precio: "$80.000 el mes.",
+      "Pensado para quienes necesitan un seguimiento mÃ¡s frecuente durante el mes.",
     precio: "$80.000 CLP"
   },
   {
     titulo: "Plan Familiar 4 sesiones",
     detalle: "4 sesiones mensuales familiares",
     descripcion:
-      "Espacio de acompañamiento familiar para fortalecer la comunicación y el bienestar.",
+      "Espacio de acompaÃ±amiento familiar para fortalecer la comunicaciÃ³n y el bienestar.",
     precio: "$90.000 CLP"
   }
 ];
@@ -30,21 +29,21 @@ const planesOnline = [
     titulo: "Plan Online 4 sesiones",
     detalle: "4 sesiones mensuales individuales",
     descripcion:
-      "Atención online con mayor flexibilidad horaria y acompañamiento profesional.",
+      "AtenciÃ³n online con mayor flexibilidad horaria y acompaÃ±amiento profesional.",
     precio: "$30.000 CLP"
   },
   {
     titulo: "Plan Online 8 sesiones",
     detalle: "8 sesiones mensuales individuales",
     descripcion:
-      "Seguimiento online continuo para un proceso terapéutico más intensivo.",
+      "Seguimiento online continuo para un proceso terapÃ©utico mÃ¡s intensivo.",
     precio: "$50.000 CLP"
   },
   {
     titulo: "Plan Familiar Online",
     detalle: "Sesiones familiares online",
     descripcion:
-      "Modalidad familiar a distancia. El valor se define según evaluación del caso.",
+      "Modalidad familiar a distancia. El valor se define segÃºn evaluaciÃ³n del caso.",
     precio: "Consultar valor"
   }
 ];
@@ -55,10 +54,10 @@ function Planes() {
       <section className="page-hero">
         <div className="page-hero-text">
           <span className="page-badge">Planes y packs</span>
-          <h1>Planes de atención psicológica</h1>
+          <h1>Planes de atenciÃ³n psicolÃ³gica</h1>
           <p>
-            Revisa las distintas alternativas de atención presencial y online.
-            Puedes elegir planes individuales o familiares según tus necesidades.
+            Revisa las distintas alternativas de atenciÃ³n presencial y online.
+            Puedes elegir planes individuales o familiares segÃºn tus necesidades.
           </p>
         </div>
 
@@ -71,7 +70,7 @@ function Planes() {
         <div className="section-intro center">
           <h3>Planes presenciales</h3>
           <p>
-            Opciones de atención en consulta, con acompañamiento individual y familiar.
+            Opciones de atenciÃ³n en consulta, con acompaÃ±amiento individual y familiar.
           </p>
         </div>
 
@@ -95,7 +94,7 @@ function Planes() {
         <div className="section-intro center">
           <h3>Planes online</h3>
           <p>
-            Alternativas flexibles para acompañarte desde cualquier lugar.
+            Alternativas flexibles para acompaÃ±arte desde cualquier lugar.
           </p>
         </div>
 
@@ -124,9 +123,9 @@ function Planes() {
 
       <section className="section">
         <div className="cta-box">
-          <h3>¿No sabes qué plan elegir?</h3>
+          <h3>Â¿No sabes quÃ© plan elegir?</h3>
           <p>
-            Puedes escribirme para evaluar tu caso y encontrar la modalidad más adecuada
+            Puedes escribirme para evaluar tu caso y encontrar la modalidad mÃ¡s adecuada
             para ti o tu familia.
           </p>
 
