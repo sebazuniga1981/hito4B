@@ -38,6 +38,12 @@ function slotKey(dateKey, hour) {
   return `${dateKey}_${hour}`;
 }
 
+function formatPrecio(precio) {
+  const n = Number(precio);
+  if (Number.isNaN(n) || n <= 0) return "Consultar";
+  return `$${n.toLocaleString("es-CL")} CLP`;
+}
+
 function buildMockData(weekStart) {
   const monday = toDateKey(weekStart);
   const tuesday = toDateKey(addDays(weekStart, 1));
@@ -97,6 +103,20 @@ function normalizeBloqueos(payload) {
   return [];
 }
 
+function normalizePlanes(payload) {
+  if (!Array.isArray(payload)) return [];
+
+  return payload.map((plan) => ({
+    id: plan.id,
+    titulo: plan.titulo || "",
+    descripcion: plan.descripcion || "",
+    precio: String(plan.precio ?? "0"),
+    modalidad: plan.modalidad || "Presencial",
+    duracion: plan.duracion || "",
+    estado: plan.estado || "activo"
+  }));
+}
+
 function PanelPsicologa() {
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [reservas, setReservas] = useState([]);
@@ -105,6 +125,21 @@ function PanelPsicologa() {
   const [actionLoadingKey, setActionLoadingKey] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const [planes, setPlanes] = useState([]);
+  const [planesLoading, setPlanesLoading] = useState(false);
+  const [planesError, setPlanesError] = useState("");
+  const [planesMessage, setPlanesMessage] = useState("");
+  const [planesActionKey, setPlanesActionKey] = useState("");
+  const [editandoPlanId, setEditandoPlanId] = useState(null);
+  const [planForm, setPlanForm] = useState({
+    titulo: "",
+    descripcion: "",
+    precio: "",
+    modalidad: "Presencial",
+    duracion: "",
+    estado: "activo"
+  });
 
   const token = localStorage.getItem("token");
 
@@ -149,6 +184,34 @@ function PanelPsicologa() {
     };
   }, [reservas]);
 
+  const sendAdminAction = async (path, method, body) => {
+    if (!API_URL) {
+      throw new Error("Falta VITE_API_URL para sincronizar con backend");
+    }
+
+    const response = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    let data = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok) {
+      throw new Error(data?.error || "No se pudo ejecutar la accion");
+    }
+
+    return data;
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -169,23 +232,7 @@ function PanelPsicologa() {
 
       try {
         const query = `weekStart=${weekRange.start}&weekEnd=${weekRange.end}`;
-        const response = await fetch(`${API_URL}/api/admin/reservas?${query}`, {
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-          }
-        });
-
-        let data = null;
-        try {
-          data = await response.json();
-        } catch {
-          data = null;
-        }
-
-        if (!response.ok) {
-          throw new Error(data?.error || "No se pudo cargar el calendario");
-        }
+        const data = await sendAdminAction(`/api/admin/reservas?${query}`, "GET");
 
         if (!isMounted) return;
         setReservas(normalizeReservas(data));
@@ -198,9 +245,7 @@ function PanelPsicologa() {
         setMessage("No se encontro endpoint admin. Mostrando demo local.");
         setError(err.message || "Error de carga");
       } finally {
-        if (isMounted) {
-          setLoadingWeek(false);
-        }
+        if (isMounted) setLoadingWeek(false);
       }
     };
 
@@ -211,28 +256,45 @@ function PanelPsicologa() {
     };
   }, [token, weekRange.end, weekRange.start, weekStart]);
 
-  const sendAdminAction = async (path, method, body) => {
-    if (!API_URL) return;
+  useEffect(() => {
+    let mounted = true;
 
-    const response = await fetch(`${API_URL}${path}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: body ? JSON.stringify(body) : undefined
-    });
+    const loadPlanes = async () => {
+      setPlanesLoading(true);
+      setPlanesError("");
 
-    if (!response.ok) {
-      let data = null;
       try {
-        data = await response.json();
-      } catch {
-        data = null;
+        if (!API_URL) throw new Error("Falta VITE_API_URL");
+
+        const response = await fetch(`${API_URL}/api/servicios`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data?.error || "No se pudieron cargar planes");
+        }
+
+        if (!mounted) return;
+        setPlanes(normalizePlanes(data));
+      } catch (err) {
+        if (!mounted) return;
+        setPlanes([]);
+        setPlanesError(err.message || "No se pudieron cargar planes");
+      } finally {
+        if (mounted) setPlanesLoading(false);
       }
-      throw new Error(data?.error || "No se pudo ejecutar la accion");
-    }
-  };
+    };
+
+    loadPlanes();
+    return () => {
+      mounted = false;
+    };
+  }, [token]);
 
   const cambiarEstadoReserva = async (reservaId, nuevoEstado) => {
     const target = reservas.find((r) => r.id === reservaId);
@@ -337,15 +399,129 @@ function PanelPsicologa() {
     }
   };
 
+  const handlePlanFormChange = (e) => {
+    setPlanForm((prev) => ({
+      ...prev,
+      [e.target.id]: e.target.value
+    }));
+  };
+
+  const resetPlanForm = () => {
+    setEditandoPlanId(null);
+    setPlanForm({
+      titulo: "",
+      descripcion: "",
+      precio: "",
+      modalidad: "Presencial",
+      duracion: "",
+      estado: "activo"
+    });
+  };
+
+  const handlePlanSubmit = async (e) => {
+    e.preventDefault();
+    setPlanesError("");
+    setPlanesMessage("");
+
+    const payload = {
+      titulo: planForm.titulo,
+      descripcion: planForm.descripcion,
+      precio: Number(planForm.precio || 0),
+      modalidad: planForm.modalidad,
+      duracion: planForm.duracion,
+      estado: planForm.estado
+    };
+
+    if (!payload.titulo || !payload.descripcion || !payload.modalidad) {
+      setPlanesError("Completa los campos obligatorios para guardar el plan");
+      return;
+    }
+
+    const actionKey = editandoPlanId ? `plan_edit_${editandoPlanId}` : "plan_create";
+    setPlanesActionKey(actionKey);
+
+    try {
+      if (editandoPlanId) {
+        const updated = await sendAdminAction(`/api/servicios/${editandoPlanId}`, "PUT", payload);
+        setPlanes((prev) => prev.map((p) => (p.id === editandoPlanId ? { ...p, ...updated } : p)));
+        setPlanesMessage("Plan actualizado correctamente");
+      } else {
+        const created = await sendAdminAction("/api/servicios", "POST", payload);
+        setPlanes((prev) => [{ ...created, precio: String(created.precio ?? payload.precio) }, ...prev]);
+        setPlanesMessage("Plan creado correctamente");
+      }
+
+      resetPlanForm();
+    } catch (err) {
+      setPlanesError(err.message || "No se pudo guardar el plan");
+    } finally {
+      setPlanesActionKey("");
+    }
+  };
+
+  const handleEditarPlan = (plan) => {
+    setEditandoPlanId(plan.id);
+    setPlanForm({
+      titulo: plan.titulo || "",
+      descripcion: plan.descripcion || "",
+      precio: String(plan.precio ?? ""),
+      modalidad: plan.modalidad || "Presencial",
+      duracion: plan.duracion || "",
+      estado: plan.estado || "activo"
+    });
+    setPlanesMessage("");
+    setPlanesError("");
+  };
+
+  const handleEliminarPlan = async (planId) => {
+    const confirmar = window.confirm("Se eliminara este plan. Deseas continuar?");
+    if (!confirmar) return;
+
+    setPlanesActionKey(`plan_delete_${planId}`);
+    setPlanesError("");
+    setPlanesMessage("");
+
+    try {
+      await sendAdminAction(`/api/servicios/${planId}`, "DELETE");
+      setPlanes((prev) => prev.filter((p) => p.id !== planId));
+      if (editandoPlanId === planId) resetPlanForm();
+      setPlanesMessage("Plan eliminado correctamente");
+    } catch (err) {
+      setPlanesError(err.message || "No se pudo eliminar el plan");
+    } finally {
+      setPlanesActionKey("");
+    }
+  };
+
+  const handleToggleEstadoPlan = async (plan) => {
+    const nuevoEstado = plan.estado === "inactivo" ? "activo" : "inactivo";
+    setPlanesActionKey(`plan_estado_${plan.id}`);
+    setPlanesError("");
+    setPlanesMessage("");
+
+    try {
+      const updated = await sendAdminAction(`/api/servicios/${plan.id}`, "PUT", {
+        ...plan,
+        estado: nuevoEstado
+      });
+      setPlanes((prev) => prev.map((p) => (p.id === plan.id ? { ...p, ...updated, estado: nuevoEstado } : p)));
+      setPlanesMessage(`Plan ${plan.id} actualizado a ${nuevoEstado}`);
+    } catch (err) {
+      setPlanesError(err.message || "No se pudo cambiar estado del plan");
+    } finally {
+      setPlanesActionKey("");
+    }
+  };
+
   return (
     <main className="panel-page">
       <section className="page-hero">
         <div className="page-hero-text">
           <span className="page-badge">Panel psicologa</span>
-          <h1>Gestion de reservas</h1>
+          <h1>Gestion de reservas y planes</h1>
           <p>
-            Acepta, mueve y bloquea horarios en calendario semanal. Jornada habilitada de lunes a
-            sabado entre 08:00 y 22:00.
+            Acepta, mueve y bloquea horarios en calendario semanal. Tambien puedes crear,
+            editar y eliminar planes desde este panel.
           </p>
         </div>
 
@@ -507,6 +683,113 @@ function PanelPsicologa() {
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section className="section section-soft">
+        <div className="section-intro">
+          <h3>Gestion de planes</h3>
+          <p>Crea, edita, activa o elimina planes de atencion desde este panel.</p>
+          {planesError && <p className="admin-error">{planesError}</p>}
+          {planesMessage && <p>{planesMessage}</p>}
+        </div>
+
+        <div className="admin-plans-layout">
+          <div className="card admin-plan-form-card">
+            <h4>{editandoPlanId ? `Editar plan #${editandoPlanId}` : "Nuevo plan"}</h4>
+
+            <form className="admin-plan-form" onSubmit={handlePlanSubmit}>
+              <div className="form-group">
+                <label htmlFor="titulo">Titulo</label>
+                <input id="titulo" value={planForm.titulo} onChange={handlePlanFormChange} required />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="descripcion">Descripcion</label>
+                <input id="descripcion" value={planForm.descripcion} onChange={handlePlanFormChange} required />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="precio">Precio</label>
+                <input id="precio" type="number" min="0" value={planForm.precio} onChange={handlePlanFormChange} />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="modalidad">Modalidad</label>
+                <select id="modalidad" value={planForm.modalidad} onChange={handlePlanFormChange}>
+                  <option value="Presencial">Presencial</option>
+                  <option value="Online">Online</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="duracion">Detalle / duracion</label>
+                <input id="duracion" value={planForm.duracion} onChange={handlePlanFormChange} />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="estado">Estado</label>
+                <select id="estado" value={planForm.estado} onChange={handlePlanFormChange}>
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+              </div>
+
+              <div className="admin-plan-actions">
+                <button type="submit" className="btn-primary" disabled={planesActionKey === "plan_create" || planesActionKey.startsWith("plan_edit_")}>
+                  {editandoPlanId ? "Guardar cambios" : "Crear plan"}
+                </button>
+                {editandoPlanId && (
+                  <button type="button" className="btn-secondary" onClick={resetPlanForm}>
+                    Cancelar edicion
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          <div className="card admin-plan-list-card">
+            <h4>Planes registrados</h4>
+            {planesLoading ? (
+              <p>Cargando planes...</p>
+            ) : planes.length === 0 ? (
+              <p>No hay planes disponibles.</p>
+            ) : (
+              <div className="admin-plan-list">
+                {planes.map((plan) => (
+                  <article key={plan.id} className="admin-plan-item">
+                    <div>
+                      <strong>{plan.titulo}</strong>
+                      <p>
+                        {plan.modalidad} · {formatPrecio(plan.precio)} · estado: {plan.estado}
+                      </p>
+                    </div>
+                    <div className="admin-plan-item-actions">
+                      <button type="button" className="mini-btn" onClick={() => handleEditarPlan(plan)}>
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        className="mini-btn"
+                        disabled={planesActionKey === `plan_estado_${plan.id}`}
+                        onClick={() => handleToggleEstadoPlan(plan)}
+                      >
+                        {plan.estado === "inactivo" ? "Activar" : "Inactivar"}
+                      </button>
+                      <button
+                        type="button"
+                        className="mini-btn"
+                        disabled={planesActionKey === `plan_delete_${plan.id}`}
+                        onClick={() => handleEliminarPlan(plan.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </main>
