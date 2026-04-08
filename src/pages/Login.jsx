@@ -2,6 +2,19 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
 
+function getRoleFromToken(token) {
+  try {
+    const payloadPart = token.split(".")[1];
+    if (!payloadPart) return "";
+    const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const payload = JSON.parse(atob(padded));
+    return payload.role || payload.rol || "";
+  } catch {
+    return "";
+  }
+}
+
 function Login() {
   const navigate = useNavigate();
 
@@ -51,7 +64,7 @@ function Login() {
       }
 
       localStorage.setItem("token", data.token);
-      const userRole = data.role || data.rol || "";
+      const userRole = data.role || data.rol || getRoleFromToken(data.token) || "";
       if (userRole) {
         localStorage.setItem("role", userRole);
         localStorage.setItem("rol", userRole);
