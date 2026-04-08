@@ -787,6 +787,13 @@ a {
   margin-bottom: 16px;
 }
 
+.admin-month-title {
+  margin: 8px 0 10px;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.1;
+  text-transform: capitalize;
+}
+
 .admin-calendar-wrap {
   overflow-x: auto;
   border: 1px solid var(--borde);
@@ -836,6 +843,11 @@ a {
   margin: 0;
   font-size: 0.92rem;
   line-height: 1.4;
+}
+
+.slot .slot-email {
+  font-size: 0.84rem;
+  opacity: 0.8;
 }
 
 .slot strong {

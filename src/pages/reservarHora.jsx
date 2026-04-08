@@ -6,6 +6,9 @@ function ReservarHora() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    nombre: "",
+    apellido: "",
+    email: "",
     fecha: "",
     hora: "",
     modalidad: "",
@@ -32,6 +35,15 @@ function ReservarHora() {
       return;
     }
 
+    const nombre = formData.nombre.trim();
+    const apellido = formData.apellido.trim();
+    const email = formData.email.trim();
+
+    if (!nombre || !apellido || !email) {
+      setError("Nombre, apellido y correo son obligatorios.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -42,7 +54,12 @@ function ReservarHora() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          nombre,
+          apellido,
+          email
+        })
       });
 
       const data = await response.json();
@@ -54,6 +71,9 @@ function ReservarHora() {
 
       setMensaje("Reserva guardada correctamente");
       setFormData({
+        nombre: "",
+        apellido: "",
+        email: "",
         fecha: "",
         hora: "",
         modalidad: "",
@@ -89,6 +109,39 @@ function ReservarHora() {
 
         <div className="booking-card">
           <form className="booking-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="nombre">Nombre</label>
+              <input
+                type="text"
+                id="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="apellido">Apellido</label>
+              <input
+                type="text"
+                id="apellido"
+                value={formData.apellido}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="email">Correo electronico</label>
+              <input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
             <div className="form-group">
               <label htmlFor="fecha">Fecha</label>
               <input type="date" id="fecha" value={formData.fecha} onChange={handleChange} required />

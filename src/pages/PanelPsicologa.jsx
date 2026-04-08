@@ -34,6 +34,13 @@ function formatShortDate(dateKey) {
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function formatMonthTitle(date) {
+  return date.toLocaleDateString("es-CL", {
+    month: "long",
+    year: "numeric"
+  });
+}
+
 function slotKey(dateKey, hour) {
   return `${dateKey}_${hour}`;
 }
@@ -95,6 +102,18 @@ function normalizeReservas(payload) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.reservas)) return payload.reservas;
   return [];
+}
+
+function getPacienteNombre(reserva) {
+  if (reserva?.nombre) return reserva.nombre;
+  if (reserva?.paciente && !String(reserva.paciente).includes("@")) return reserva.paciente;
+  return "Falta nombre";
+}
+
+function getPacienteCorreo(reserva) {
+  if (reserva?.email) return reserva.email;
+  if (reserva?.paciente && String(reserva.paciente).includes("@")) return reserva.paciente;
+  return "Falta correo";
 }
 
 function normalizeBloqueos(payload) {
@@ -159,6 +178,8 @@ function PanelPsicologa() {
     const end = weekDays[weekDays.length - 1]?.dateKey;
     return { start, end };
   }, [weekDays]);
+
+  const monthTitle = useMemo(() => formatMonthTitle(weekStart), [weekStart]);
 
   const reservasBySlot = useMemo(() => {
     const map = new Map();
@@ -558,6 +579,7 @@ function PanelPsicologa() {
       <section className="section">
         <div className="section-intro">
           <h3>Calendario semanal</h3>
+          <h2 className="admin-month-title">{monthTitle}</h2>
           <p>
             Semana {weekRange.start} a {weekRange.end}. Cada celda representa 1 hora.
           </p>
@@ -630,7 +652,8 @@ function PanelPsicologa() {
 
                         {reserva && (
                           <div className="slot slot-reserva">
-                            <strong>{reserva.paciente || "Paciente"}</strong>
+                            <strong>{getPacienteNombre(reserva)}</strong>
+                            <p className="slot-email">{getPacienteCorreo(reserva)}</p>
                             <p>{reserva.modalidad || "Modalidad"}</p>
                             <p>{reserva.tipoSesion || "Sesion"}</p>
                             <span
