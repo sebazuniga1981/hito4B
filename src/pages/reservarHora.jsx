@@ -7,6 +7,7 @@ const HOURS = HORAS_AGENDA;
 
 function ReservarHora() {
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -22,6 +23,7 @@ function ReservarHora() {
   const [loading, setLoading] = useState(false);
   const [loadingDisponibilidad, setLoadingDisponibilidad] = useState(false);
   const [horasNoDisponibles, setHorasNoDisponibles] = useState([]);
+  const [perfil, setPerfil] = useState(null);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -40,15 +42,6 @@ function ReservarHora() {
       return;
     }
 
-    const nombre = formData.nombre.trim();
-    const apellido = formData.apellido.trim();
-    const email = formData.email.trim();
-
-    if (!nombre || !apellido || !email) {
-      setError("Nombre, apellido y correo son obligatorios.");
-      return;
-    }
-
     if (horasNoDisponibles.includes(formData.hora)) {
       setError("La hora seleccionada ya no esta disponible. Elige otra.");
       return;
@@ -57,7 +50,6 @@ function ReservarHora() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/reservas`, {
         method: "POST",
         headers: {
@@ -65,10 +57,10 @@ function ReservarHora() {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
-          ...formData,
-          nombre,
-          apellido,
-          email
+          fecha: formData.fecha,
+          hora: formData.hora,
+          modalidad: formData.modalidad,
+          tipoSesion: formData.tipoSesion
         })
       });
 
@@ -81,9 +73,9 @@ function ReservarHora() {
 
       setMensaje("Reserva guardada correctamente");
       setFormData({
-        nombre: "",
-        apellido: "",
-        email: "",
+        nombre: perfil?.nombre || "",
+        apellido: perfil?.apellido || "",
+        email: perfil?.email || "",
         fecha: "",
         hora: "",
         modalidad: "",
@@ -141,6 +133,40 @@ function ReservarHora() {
     };
   }, [formData.fecha]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const loadPerfil = async () => {
+      if (!token || !API_URL) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/mi-perfil`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+        if (!response.ok) return;
+
+        if (!mounted) return;
+        setPerfil(data);
+        setFormData((prev) => ({
+          ...prev,
+          nombre: data.nombre || "",
+          apellido: data.apellido || "",
+          email: data.email || prev.email
+        }));
+      } catch {}
+    };
+
+    loadPerfil();
+    return () => {
+      mounted = false;
+    };
+  }, [token]);
+
   return (
     <main className="reservar-page">
       <section className="page-hero">
@@ -158,43 +184,51 @@ function ReservarHora() {
       <section className="section section-soft">
         <div className="section-intro">
           <h3>Formulario de reserva</h3>
-          <p>Completa tus datos para confirmar tu reserva.</p>
+          <p>
+            {token
+              ? "Tus datos personales se toman desde tu perfil. Solo elige fecha, hora y tipo de sesion."
+              : "Completa tus datos para confirmar tu reserva."}
+          </p>
         </div>
 
         <div className="booking-card">
           <form className="booking-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="nombre">Nombre</label>
-              <input
-                type="text"
-                id="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                required
-              />
-            </div>
+            {!token && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="nombre">Nombre</label>
+                  <input
+                    type="text"
+                    id="nombre"
+                    value={formData.nombre}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-            <div className="form-group">
-              <label htmlFor="apellido">Apellido</label>
-              <input
-                type="text"
-                id="apellido"
-                value={formData.apellido}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                <div className="form-group">
+                  <label htmlFor="apellido">Apellido</label>
+                  <input
+                    type="text"
+                    id="apellido"
+                    value={formData.apellido}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-            <div className="form-group">
-              <label htmlFor="email">Correo electronico</label>
-              <input
-                type="email"
-                id="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                <div className="form-group">
+                  <label htmlFor="email">Correo electronico</label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </>
+            )}
 
             <div className="form-group">
               <label htmlFor="fecha">Fecha</label>

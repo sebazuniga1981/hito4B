@@ -41,6 +41,16 @@ async function safeReadJson(response) {
 function PanelPaciente() {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [perfilLoading, setPerfilLoading] = useState(true);
+  const [perfilSaving, setPerfilSaving] = useState(false);
+  const [perfil, setPerfil] = useState({
+    nombre: "",
+    apellido: "",
+    edad: "",
+    sexo: "",
+    telefono: "",
+    email: ""
+  });
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [actionKey, setActionKey] = useState("");
@@ -94,9 +104,89 @@ function PanelPaciente() {
     }
   };
 
+  const loadPerfil = async () => {
+    setPerfilLoading(true);
+
+    if (!API_URL) {
+      setPerfilLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/mi-perfil`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
+
+      const data = await safeReadJson(response);
+      if (!response.ok) throw new Error(data?.error || "No se pudo cargar perfil");
+
+      setPerfil({
+        nombre: data?.nombre || "",
+        apellido: data?.apellido || "",
+        edad: data?.edad == null ? "" : String(data.edad),
+        sexo: data?.sexo || "",
+        telefono: data?.telefono || "",
+        email: data?.email || ""
+      });
+    } catch (err) {
+      setError((prev) => prev || err.message || "No se pudo cargar perfil");
+    } finally {
+      setPerfilLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadReservas();
+    loadPerfil();
   }, []);
+
+  const handlePerfilChange = (e) => {
+    setPerfil((prev) => ({
+      ...prev,
+      [e.target.id]: e.target.value
+    }));
+  };
+
+  const guardarPerfil = async (e) => {
+    e.preventDefault();
+    setPerfilSaving(true);
+    setError("");
+    setMensaje("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/mi-perfil`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          ...perfil,
+          edad: perfil.edad === "" ? null : Number(perfil.edad)
+        })
+      });
+
+      const data = await safeReadJson(response);
+      if (!response.ok) throw new Error(data?.error || "No se pudo actualizar perfil");
+
+      setPerfil({
+        nombre: data?.nombre || "",
+        apellido: data?.apellido || "",
+        edad: data?.edad == null ? "" : String(data.edad),
+        sexo: data?.sexo || "",
+        telefono: data?.telefono || "",
+        email: data?.email || ""
+      });
+      setMensaje("Perfil actualizado correctamente");
+    } catch (err) {
+      setError(err.message || "No se pudo actualizar perfil");
+    } finally {
+      setPerfilSaving(false);
+    }
+  };
 
   const cancelarReserva = async (reservaId) => {
     const confirmar = window.confirm("Se cancelara esta reserva. Deseas continuar?");
@@ -202,6 +292,59 @@ function PanelPaciente() {
         <div className="page-hero-image">
           <div className="photo-placeholder small">Mi cuenta</div>
         </div>
+      </section>
+
+      <section className="section section-soft">
+        <div className="section-intro">
+          <h3>Mi perfil</h3>
+          <p>Completa o actualiza tus datos personales.</p>
+        </div>
+
+        {perfilLoading ? (
+          <p>Cargando perfil...</p>
+        ) : (
+          <form className="booking-form" onSubmit={guardarPerfil}>
+            <div className="form-group">
+              <label htmlFor="nombre">Nombre</label>
+              <input id="nombre" value={perfil.nombre} onChange={handlePerfilChange} required />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="apellido">Apellido</label>
+              <input id="apellido" value={perfil.apellido} onChange={handlePerfilChange} required />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="edad">Edad</label>
+              <input id="edad" type="number" min="0" max="120" value={perfil.edad} onChange={handlePerfilChange} />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="sexo">Sexo</label>
+              <select id="sexo" value={perfil.sexo} onChange={handlePerfilChange}>
+                <option value="">Selecciona</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Masculino">Masculino</option>
+                <option value="No binario">No binario</option>
+                <option value="Prefiero no decir">Prefiero no decir</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="telefono">Telefono</label>
+              <input id="telefono" value={perfil.telefono} onChange={handlePerfilChange} />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="email">Correo</label>
+              <input id="email" type="email" value={perfil.email} onChange={handlePerfilChange} required />
+            </div>
+
+            <button type="submit" className="btn-primary auth-button" disabled={perfilSaving}>
+              {perfilSaving ? "Guardando..." : "Guardar perfil"}
+            </button>
+          </form>
+        )}
       </section>
 
       <section className="section section-soft">
