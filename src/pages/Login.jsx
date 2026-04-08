@@ -17,7 +17,6 @@ function getRoleFromToken(token) {
 
 function Login() {
   const navigate = useNavigate();
-  const ADMIN_EMAILS = ["blusero22@gmail.com"];
 
   const [formData, setFormData] = useState({
     email: "",
@@ -65,9 +64,7 @@ function Login() {
       }
 
       localStorage.setItem("token", data.token);
-      const normalizedEmail = (formData.email || "").trim().toLowerCase();
-      const fallbackAdminRole = ADMIN_EMAILS.includes(normalizedEmail) ? "admin" : "";
-      const userRole = data.role || data.rol || getRoleFromToken(data.token) || fallbackAdminRole;
+      const userRole = data.role || data.rol || getRoleFromToken(data.token) || "";
       if (userRole) {
         localStorage.setItem("role", userRole);
         localStorage.setItem("rol", userRole);
