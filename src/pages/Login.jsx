@@ -11,6 +11,7 @@ function Login() {
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -28,6 +29,8 @@ function Login() {
       return;
     }
 
+    setLoading(true);
+
     try {
       const response = await fetch(`${API_URL}/api/login`, {
         method: "POST",
@@ -43,7 +46,7 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "No se pudo iniciar sesión");
+        setError(data.error || "No se pudo iniciar sesion");
         return;
       }
 
@@ -55,8 +58,10 @@ function Login() {
       }
 
       navigate(data.role === "admin" ? "/panel-psicologa" : "/panel-paciente");
-    } catch (err) {
-      setError("Error de conexión con el servidor");
+    } catch {
+      setError("Error de conexion con el servidor");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,15 +69,15 @@ function Login() {
     <main className="auth-page">
       <section className="auth-wrapper">
         <div className="auth-card">
-          <span className="page-badge">Iniciar sesión</span>
+          <span className="page-badge">Iniciar sesion</span>
           <h1>Bienvenido/a a PsicoConecta</h1>
           <p className="auth-subtext">
-            Ingresa a tu cuenta para revisar tu información y gestionar tus reservas.
+            Ingresa a tu cuenta para revisar tu informacion y gestionar tus reservas.
           </p>
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="email">Correo electrónico</label>
+              <label htmlFor="email">Correo electronico</label>
               <input
                 type="email"
                 id="email"
@@ -84,11 +89,11 @@ function Login() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Contraseña</label>
+              <label htmlFor="password">Contrasena</label>
               <input
                 type="password"
                 id="password"
-                placeholder="Ingresa tu contraseña"
+                placeholder="Ingresa tu contrasena"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -97,16 +102,16 @@ function Login() {
 
             {error && <p>{error}</p>}
 
-            <button type="submit" className="btn-primary auth-button">
-              Iniciar sesión
+            <button type="submit" className="btn-primary auth-button" disabled={loading}>
+              {loading ? "Cargando..." : "Iniciar sesion"}
             </button>
           </form>
 
           <div className="auth-links">
             <p>
-              ¿Aún no tienes cuenta?{" "}
+              Aun no tienes cuenta?{" "}
               <Link to="/registro" className="text-link">
-                Regístrate aquí
+                Registrate aqui
               </Link>
             </p>
           </div>

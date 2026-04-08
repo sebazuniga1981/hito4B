@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
 
@@ -15,6 +15,7 @@ function Registro() {
 
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -34,9 +35,11 @@ function Registro() {
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      setError("Las contrasenas no coinciden");
       return;
     }
+
+    setLoading(true);
 
     try {
       const response = await fetch(`${API_URL}/api/register`, {
@@ -61,8 +64,10 @@ function Registro() {
       setTimeout(() => {
         navigate("/login");
       }, 1500);
-    } catch (err) {
-      setError("Error de conexión con el servidor");
+    } catch {
+      setError("Error de conexion con el servidor");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,7 +78,7 @@ function Registro() {
           <span className="page-badge">Registro</span>
           <h1>Crea tu cuenta en PsicoConecta</h1>
           <p className="auth-subtext">
-            Regístrate para poder reservar horas y acceder a tu información.
+            Registrate para poder reservar horas y acceder a tu informacion.
           </p>
 
           <form className="auth-form" onSubmit={handleSubmit}>
@@ -100,7 +105,7 @@ function Registro() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="email">Correo electrónico</label>
+              <label htmlFor="email">Correo electronico</label>
               <input
                 type="email"
                 id="email"
@@ -112,11 +117,11 @@ function Registro() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Contraseña</label>
+              <label htmlFor="password">Contrasena</label>
               <input
                 type="password"
                 id="password"
-                placeholder="Crea una contraseña"
+                placeholder="Crea una contrasena"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -124,11 +129,11 @@ function Registro() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirmar contraseña</label>
+              <label htmlFor="confirmPassword">Confirmar contrasena</label>
               <input
                 type="password"
                 id="confirmPassword"
-                placeholder="Repite tu contraseña"
+                placeholder="Repite tu contrasena"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
@@ -138,16 +143,16 @@ function Registro() {
             {mensaje && <p>{mensaje}</p>}
             {error && <p>{error}</p>}
 
-            <button type="submit" className="btn-primary auth-button">
-              Registrarse
+            <button type="submit" className="btn-primary auth-button" disabled={loading}>
+              {loading ? "Registrando..." : "Registrarse"}
             </button>
           </form>
 
           <div className="auth-links">
             <p>
-              ¿Ya tienes cuenta?{" "}
+              Ya tienes cuenta?{" "}
               <Link to="/login" className="text-link">
-                Inicia sesión aquí
+                Inicia sesion aqui
               </Link>
             </p>
           </div>

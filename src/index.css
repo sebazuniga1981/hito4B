@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --crema: #faf7f2;
   --rosa: #efd9d1;
   --lavanda: #dccfe8;
@@ -752,4 +752,115 @@ a {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+.admin-error {
+  color: #8f1f2f;
+  font-weight: 600;
+}
+
+.admin-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.admin-calendar-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--borde);
+  border-radius: 18px;
+  background-color: var(--blanco);
+}
+
+.admin-calendar {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.admin-calendar th,
+.admin-calendar td {
+  border-bottom: 1px solid var(--borde);
+  border-right: 1px solid var(--borde);
+  vertical-align: top;
+  padding: 10px;
+}
+
+.admin-calendar th:last-child,
+.admin-calendar td:last-child {
+  border-right: 0;
+}
+
+.admin-calendar thead th {
+  background-color: #f7f5fb;
+  text-align: left;
+}
+
+.admin-calendar .hour-col {
+  min-width: 72px;
+  font-weight: 700;
+  white-space: nowrap;
+  background-color: #fbfafc;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 112px;
+}
+
+.slot p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.slot strong {
+  font-size: 0.95rem;
+}
+
+.slot-available {
+  opacity: 0.9;
+}
+
+.slot-bloqueada {
+  background-color: #fff2d9;
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.slot-reserva {
+  background-color: #f9f7ff;
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.slot-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mini-btn {
+  border: 1px solid var(--borde);
+  background-color: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.mini-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-bloqueada {
+  background-color: #ffd58a;
+}
+
+.status-cancelada {
+  background-color: #e7e7e7;
 }
