@@ -17,6 +17,7 @@ function getRoleFromToken(token) {
 
 function Login() {
   const navigate = useNavigate();
+  const ADMIN_EMAILS = ["blusero22@gmail.com"];
 
   const [formData, setFormData] = useState({
     email: "",
@@ -57,8 +58,6 @@ function Login() {
       });
 
       const data = await response.json();
-console.log("LOGIN RESPONSE:", data);
-console.log("TOKEN PAYLOAD:", data.token ? JSON.parse(atob(data.token.split(".")[1])) : null);
 
       if (!response.ok) {
         setError(data.error || "No se pudo iniciar sesion");
@@ -66,7 +65,9 @@ console.log("TOKEN PAYLOAD:", data.token ? JSON.parse(atob(data.token.split(".")
       }
 
       localStorage.setItem("token", data.token);
-      const userRole = data.role || data.rol || getRoleFromToken(data.token) || "";
+      const normalizedEmail = (formData.email || "").trim().toLowerCase();
+      const fallbackAdminRole = ADMIN_EMAILS.includes(normalizedEmail) ? "admin" : "";
+      const userRole = data.role || data.rol || getRoleFromToken(data.token) || fallbackAdminRole;
       if (userRole) {
         localStorage.setItem("role", userRole);
         localStorage.setItem("rol", userRole);
