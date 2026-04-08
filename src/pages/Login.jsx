@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
 
@@ -57,6 +57,8 @@ function Login() {
       });
 
       const data = await response.json();
+console.log("LOGIN RESPONSE:", data);
+console.log("TOKEN PAYLOAD:", data.token ? JSON.parse(atob(data.token.split(".")[1])) : null);
 
       if (!response.ok) {
         setError(data.error || "No se pudo iniciar sesion");
