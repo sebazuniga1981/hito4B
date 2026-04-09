@@ -51,6 +51,7 @@ function PanelPaciente() {
     telefono: "",
     email: ""
   });
+  const [editandoPerfil, setEditandoPerfil] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [actionKey, setActionKey] = useState("");
@@ -181,6 +182,7 @@ function PanelPaciente() {
         email: data?.email || ""
       });
       setMensaje("Perfil actualizado correctamente");
+      setEditandoPerfil(false);
     } catch (err) {
       setError(err.message || "No se pudo actualizar perfil");
     } finally {
@@ -297,11 +299,25 @@ function PanelPaciente() {
       <section className="section section-soft">
         <div className="section-intro">
           <h3>Mi perfil</h3>
-          <p>Completa o actualiza tus datos personales.</p>
+          <p>Revisa tus datos y editalos cuando lo necesites.</p>
         </div>
 
         {perfilLoading ? (
           <p>Cargando perfil...</p>
+        ) : !editandoPerfil ? (
+          <div className="card profile-summary-card">
+            <div className="profile-summary-grid">
+              <p><strong>Nombre:</strong> {perfil.nombre || "No definido"}</p>
+              <p><strong>Apellido:</strong> {perfil.apellido || "No definido"}</p>
+              <p><strong>Edad:</strong> {perfil.edad || "No definida"}</p>
+              <p><strong>Sexo:</strong> {perfil.sexo || "No definido"}</p>
+              <p><strong>Telefono:</strong> {perfil.telefono || "No definido"}</p>
+              <p><strong>Correo:</strong> {perfil.email || "No definido"}</p>
+            </div>
+            <button type="button" className="mini-btn profile-edit-btn" onClick={() => setEditandoPerfil(true)}>
+              <span aria-hidden="true">✎</span> Editar perfil
+            </button>
+          </div>
         ) : (
           <form className="booking-form" onSubmit={guardarPerfil}>
             <div className="form-group">
@@ -342,6 +358,16 @@ function PanelPaciente() {
 
             <button type="submit" className="btn-primary auth-button" disabled={perfilSaving}>
               {perfilSaving ? "Guardando..." : "Guardar perfil"}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary auth-button"
+              onClick={() => {
+                setEditandoPerfil(false);
+                loadPerfil();
+              }}
+            >
+              Cancelar edicion
             </button>
           </form>
         )}

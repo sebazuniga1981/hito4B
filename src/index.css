@@ -734,6 +734,29 @@ a {
   flex-wrap: wrap;
 }
 
+.profile-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+}
+
+.profile-summary-grid p {
+  margin: 0;
+}
+
+.profile-edit-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .panel-edit-box {
   display: flex;
   gap: 8px;
@@ -772,6 +795,10 @@ a {
   .panel-item {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .profile-summary-grid {
+    grid-template-columns: 1fr;
   }
 }
 
