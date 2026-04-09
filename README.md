@@ -29,3 +29,4 @@ npm run build
 - `POST /api/reservas`
 
 Si las reservas no quedan en PostgreSQL, el problema esta en el backend desplegado (variables de entorno y conexion a DB), no en este frontend.
+prueba clave admin
